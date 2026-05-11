@@ -1,0 +1,66 @@
+<section class="teacher-header">
+  <div>
+    <span class="eyebrow">Кабинет преподавателя</span>
+    <h1>Создать тест</h1>
+    <p>Заполните форму и добавьте вопросы для новой оценки.</p>
+  </div>
+</section>
+
+<mat-card class="teacher-card">
+  <form [formGroup]="quizForm" class="teacher-form">
+    <div class="form-grid">
+      <mat-form-field appearance="fill">
+        <mat-label>Название теста</mat-label>
+        <input matInput formControlName="title" placeholder="Тест по основам Java" />
+      </mat-form-field>
+
+      <mat-form-field appearance="fill">
+        <mat-label>Курс</mat-label>
+        <mat-select formControlName="courseId">
+          <mat-option *ngFor="let course of courses" [value]="course.id">{{ course.name }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Описание</mat-label>
+        <textarea matInput formControlName="description" rows="4"></textarea>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill">
+        <mat-label>Время (минут)</mat-label>
+        <input matInput type="number" formControlName="timeLimitMinutes" />
+      </mat-form-field>
+
+      <mat-form-field appearance="fill">
+        <mat-label>Макс. попыток</mat-label>
+        <input matInput type="number" formControlName="maxAttempts" />
+      </mat-form-field>
+
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Группы для теста</mat-label>
+        <mat-select formControlName="groupIds" multiple>
+          <mat-option *ngFor="let group of groups" [value]="group.id">
+            {{ group.name }} ({{ group.courseNumber }} курс)
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill">
+        <mat-label>Доступен с</mat-label>
+        <input matInput type="datetime-local" formControlName="availableFrom" />
+      </mat-form-field>
+
+      <mat-form-field appearance="fill">
+        <mat-label>Доступен до</mat-label>
+        <input matInput type="datetime-local" formControlName="dueDate" />
+      </mat-form-field>
+    </div>
+
+    <div class="form-actions">
+      <button mat-flat-button color="primary" type="button" (click)="submit()" [disabled]="quizForm.invalid">
+        Создать тест
+      </button>
+      <button mat-stroked-button color="basic" routerLink="/teacher/courses">Назад к курсам</button>
+    </div>
+  </form>
+</mat-card>

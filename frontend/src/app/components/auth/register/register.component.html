@@ -1,0 +1,55 @@
+<section class="auth-page">
+  <mat-card class="auth-card">
+    <h1>Регистрация</h1>
+    <p>Выберите роль для нового пользователя.</p>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form">
+      <mat-form-field appearance="fill">
+        <mat-label>Имя</mat-label>
+        <input matInput formControlName="firstName" />
+      </mat-form-field>
+
+      <mat-form-field appearance="fill">
+        <mat-label>Фамилия</mat-label>
+        <input matInput formControlName="lastName" />
+      </mat-form-field>
+
+      <mat-form-field appearance="fill">
+        <mat-label>Email</mat-label>
+        <input matInput formControlName="email" type="email" />
+      </mat-form-field>
+
+      <mat-form-field appearance="fill">
+        <mat-label>Пароль</mat-label>
+        <input matInput formControlName="password" type="password" />
+      </mat-form-field>
+
+      <mat-form-field appearance="fill">
+        <mat-label>Роль</mat-label>
+        <mat-select formControlName="role">
+          <mat-option *ngFor="let role of roles" [value]="role">
+            {{ role }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill" *ngIf="form.value.role === 'STUDENT'">
+        <mat-label>Учебная группа</mat-label>
+        <mat-select formControlName="groupId">
+          <mat-option *ngFor="let group of groups" [value]="group.id">
+            {{ group.name }} ({{ group.courseNumber }} курс)
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid || loading">
+        {{ loading ? 'Создаём...' : 'Зарегистрироваться' }}
+      </button>
+    </form>
+
+    <p class="switch-link">
+      Уже есть аккаунт?
+      <a routerLink="/auth/login">Войти</a>
+    </p>
+  </mat-card>
+</section>

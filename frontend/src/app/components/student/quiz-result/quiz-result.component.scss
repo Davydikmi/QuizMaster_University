@@ -1,0 +1,48 @@
+.result-card {
+  padding: 1.75rem;
+  border-radius: 28px;
+  border: 1px solid rgba(37, 99, 235, 0.12);
+  box-shadow: var(--shadow-soft);
+}
+
+.result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.result-header h1 {
+  margin: 0.5rem 0 0;
+}
+
+.result-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  padding: 1.5rem 0;
+}
+
+.result-summary div {
+  background: rgba(37, 99, 235, 0.06);
+  border-radius: 22px;
+  padding: 1rem;
+  text-align: center;
+}
+
+.result-summary span {
+  display: block;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.result-summary strong {
+  font-size: 1.75rem;
+  color: #1e3a8a;
+}
+
+.result-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}

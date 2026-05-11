@@ -1,0 +1,54 @@
+<div class="quiz-header">
+  <div>
+    <span class="eyebrow">Прохождение теста</span>
+    <h1>{{ quizTitle }}</h1>
+    <p *ngIf="courseName">Курс: {{ courseName }}</p>
+  </div>
+  <app-timer [durationSeconds]="900" (expired)="onTimerExpired()"></app-timer>
+</div>
+
+<mat-progress-bar [value]="progress" color="accent"></mat-progress-bar>
+<div class="quiz-status">Заполнено {{ progress }}%</div>
+
+<mat-card class="quiz-card" *ngIf="questions.length > 0">
+  <form [formGroup]="form" class="quiz-form">
+    <div formArrayName="answers">
+      <div class="question-card" *ngFor="let question of questions; let i = index" [formGroupName]="i">
+        <div class="question-header">
+          <div>
+            <h2>Вопрос {{ i + 1 }}</h2>
+            <p>{{ question.text }}</p>
+          </div>
+          <span class="points">{{ question.points || 1 }} балл</span>
+        </div>
+
+        <mat-radio-group formControlName="selectedAnswerId" class="answer-options">
+          <mat-radio-button
+            *ngFor="let answer of question.options"
+            [value]="answer.id"
+            class="answer-chip"
+          >
+            <span>{{ answer.text }}</span>
+          </mat-radio-button>
+        </mat-radio-group>
+      </div>
+    </div>
+
+    <div class="quiz-actions">
+      <button mat-flat-button color="primary" [disabled]="submitted || isExpired" (click)="submit()">
+        {{ submitted ? 'Результаты вычисляются...' : 'Отправить ответы' }}
+      </button>
+      <button mat-stroked-button color="basic" routerLink="/quizzes">Вернуться к списку</button>
+    </div>
+  </form>
+</mat-card>
+
+<mat-card *ngIf="submitted" class="result-banner">
+  <div class="result-body">
+    <mat-icon>check_circle</mat-icon>
+    <div>
+      <h3>Ответы отправлены</h3>
+      <p>Вы заработали {{ score }} баллов из {{ total }} возможных.</p>
+    </div>
+  </div>
+</mat-card>

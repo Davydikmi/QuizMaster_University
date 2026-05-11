@@ -1,0 +1,26 @@
+.teacher-card {
+  padding: 1.5rem;
+  border-radius: 28px;
+  border: 1px solid rgba(37, 99, 235, 0.12);
+}
+
+.teacher-header {
+  margin-bottom: 1.5rem;
+}
+
+.teacher-table {
+  width: 100%;
+}
+
+.mat-header-cell {
+  font-weight: 700;
+  color: #1e3a8a;
+}
+
+.mat-chip {
+  border-radius: 999px;
+}
+
+.mat-row:hover {
+  background: rgba(37, 99, 235, 0.04);
+}

@@ -1,0 +1,34 @@
+<section class="profile-page">
+  <mat-card class="profile-card">
+    <h1>Профиль</h1>
+    <p>Измените персональные данные и пароль.</p>
+    <p><strong>Роль:</strong> {{ roleLabel }}</p>
+    <p><strong>Группа:</strong> {{ groupLabel }}</p>
+
+    <form [formGroup]="form" class="profile-form" (ngSubmit)="save()">
+      <mat-form-field appearance="fill">
+        <mat-label>Имя</mat-label>
+        <input matInput formControlName="firstName" />
+      </mat-form-field>
+
+      <mat-form-field appearance="fill">
+        <mat-label>Фамилия</mat-label>
+        <input matInput formControlName="lastName" />
+      </mat-form-field>
+
+      <mat-form-field appearance="fill">
+        <mat-label>Email</mat-label>
+        <input matInput type="email" formControlName="email" />
+      </mat-form-field>
+
+      <mat-form-field appearance="fill">
+        <mat-label>Новый пароль</mat-label>
+        <input matInput type="password" formControlName="password" />
+      </mat-form-field>
+
+      <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid || loading">
+        {{ loading ? 'Сохраняем...' : 'Сохранить' }}
+      </button>
+    </form>
+  </mat-card>
+</section>

@@ -1,0 +1,9 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^mv QuizResult\\.java QuizAttempt\\.java$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        ".\\mvnw.cmd": true
+    }
+}

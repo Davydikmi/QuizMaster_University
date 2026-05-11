@@ -1,0 +1,41 @@
+<section class="teacher-header">
+  <div>
+    <span class="eyebrow">Кабинет преподавателя</span>
+    <h1>Добавить вопросы</h1>
+    <p>Выберите тест и добавьте новые вопросы для оценки.</p>
+  </div>
+  <button mat-flat-button color="primary" (click)="openQuestionDialog()" [disabled]="!selectedQuiz">Добавить вопрос</button>
+</section>
+
+<mat-card class="teacher-card">
+  <form [formGroup]="quizForm">
+    <mat-form-field appearance="fill" class="quiz-select">
+      <mat-label>Выберите тест</mat-label>
+      <mat-select formControlName="quizId">
+        <mat-option *ngFor="let quiz of quizzes" [value]="quiz.id">{{ quiz.title }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </form>
+
+  <div *ngIf="quizzes.length === 0" class="empty-state">
+    <p>Список тестов пуст. Сначала создайте тест на странице «Создать тест».</p>
+  </div>
+
+  <div *ngIf="selectedQuiz" class="question-list">
+    <h2>Вопросы для теста {{ selectedQuiz.title }}</h2>
+    <div class="question-item" *ngFor="let question of questions; let i = index">
+      <div>
+        <div class="question-title">{{ i + 1 }}. {{ question.text }}</div>
+        <div class="secondary">Варианты: {{ question.options.length }} | Тип: {{ question.type }}</div>
+      </div>
+      <div class="question-actions">
+        <button mat-stroked-button type="button" color="primary" (click)="editQuestion(question)">Изменить</button>
+        <button mat-stroked-button type="button" color="warn" (click)="removeQuestion(question)">Удалить</button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="selectedQuiz && questions.length === 0" class="empty-state">
+    <p>Список вопросов пока пуст. Добавьте первый вопрос.</p>
+  </div>
+</mat-card>

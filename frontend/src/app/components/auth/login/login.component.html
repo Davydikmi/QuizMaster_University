@@ -1,0 +1,27 @@
+<section class="auth-page">
+  <mat-card class="auth-card">
+    <h1>Вход</h1>
+    <p>Войдите в систему, чтобы продолжить работу.</p>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form">
+      <mat-form-field appearance="fill">
+        <mat-label>Email</mat-label>
+        <input matInput formControlName="email" type="email" />
+      </mat-form-field>
+
+      <mat-form-field appearance="fill">
+        <mat-label>Пароль</mat-label>
+        <input matInput formControlName="password" type="password" />
+      </mat-form-field>
+
+      <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid || loading">
+        {{ loading ? 'Входим...' : 'Войти' }}
+      </button>
+    </form>
+
+    <p class="switch-link">
+      Нет аккаунта?
+      <a routerLink="/auth/register">Зарегистрироваться</a>
+    </p>
+  </mat-card>
+</section>

@@ -1,0 +1,37 @@
+.teacher-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.teacher-header .eyebrow {
+  text-transform: uppercase;
+  color: #2563eb;
+  letter-spacing: 0.12em;
+  font-weight: 700;
+}
+
+.teacher-card {
+  padding: 1.5rem;
+  border-radius: 28px;
+  border: 1px solid rgba(37, 99, 235, 0.12);
+}
+
+.teacher-table {
+  width: 100%;
+}
+
+.mat-header-cell {
+  color: #1e3a8a;
+  font-weight: 700;
+}
+
+.mat-cell {
+  color: var(--text-secondary);
+}
+
+.mat-row:hover {
+  background: rgba(37, 99, 235, 0.04);
+}

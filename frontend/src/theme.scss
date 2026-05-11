@@ -1,0 +1,32 @@
+@use '@angular/material' as mat;
+
+@include mat.core();
+
+$app-theme: mat.define-theme((
+  color: (
+    primary: mat.$blue-palette,
+    tertiary: mat.$cyan-palette,
+  )
+));
+
+@include mat.all-component-colors($app-theme);
+
+@mixin app-theme {
+  // Дополнительные стили темы, если нужны
+}
+
+:root {
+  --brand-900: #1e3a8a;
+  --brand-700: #2563eb;
+  --brand-300: #60a5fa;
+  --surface: #f5f8ff;
+  --surface-strong: #ffffff;
+  --surface-muted: #e5efff;
+  --surface-border: rgba(37, 99, 235, 0.12);
+  --text-primary: #102a43;
+  --text-secondary: #475569;
+  --text-faded: #64748b;
+  --shadow-soft: 0 18px 40px rgba(15, 23, 42, 0.08);
+  --shadow-card: 0 24px 60px rgba(15, 23, 42, 0.12);
+  --radius: 24px;
+}

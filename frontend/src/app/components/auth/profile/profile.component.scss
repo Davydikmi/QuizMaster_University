@@ -1,0 +1,15 @@
+.profile-page {
+  display: grid;
+  place-items: center;
+}
+
+.profile-card {
+  width: min(100%, 560px);
+  padding: 1rem;
+}
+
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}

@@ -1,0 +1,38 @@
+<section class="teacher-header">
+  <div>
+    <span class="eyebrow">Администрирование</span>
+    <h1>Учебные группы</h1>
+    <p>Создавайте и редактируйте учебные группы.</p>
+  </div>
+  <button mat-flat-button color="primary" (click)="openDialog()">Новая группа</button>
+</section>
+
+<mat-card class="teacher-card">
+  <table mat-table [dataSource]="groups" class="mat-elevation-z1 teacher-table">
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef>Группа</th>
+      <td mat-cell *matCellDef="let group">{{ group.name }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="courseNumber">
+      <th mat-header-cell *matHeaderCellDef>Курс</th>
+      <td mat-cell *matCellDef="let group">{{ group.courseNumber }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="speciality">
+      <th mat-header-cell *matHeaderCellDef>Специальность</th>
+      <td mat-cell *matCellDef="let group">{{ group.speciality || '—' }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef>Действия</th>
+      <td mat-cell *matCellDef="let group">
+        <button mat-stroked-button color="primary" (click)="openDialog(group)">Изменить</button>
+        <button mat-stroked-button color="warn" (click)="remove(group)">Удалить</button>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+  </table>
+</mat-card>

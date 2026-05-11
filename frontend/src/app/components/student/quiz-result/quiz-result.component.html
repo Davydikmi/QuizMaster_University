@@ -1,0 +1,32 @@
+<mat-card class="result-card">
+  <div class="result-header">
+    <div>
+      <span class="eyebrow">Результаты</span>
+      <h1>{{ result.quizTitle }}</h1>
+      <p>Время прохождения завершено: {{ result.finishedAt | date:'medium' }}</p>
+    </div>
+    <mat-icon>auto_graph</mat-icon>
+  </div>
+
+  <mat-divider></mat-divider>
+
+  <div class="result-summary">
+    <div>
+      <span>Набрано баллов</span>
+      <strong>{{ result.score }}</strong>
+    </div>
+    <div>
+      <span>Макс. баллов</span>
+      <strong>{{ result.maxScore }}</strong>
+    </div>
+    <div>
+      <span>Процент</span>
+      <strong>{{ (result.maxScore ? ((result.score / result.maxScore) * 100) : 0) | number:'1.0-0' }}%</strong>
+    </div>
+  </div>
+
+  <div class="result-actions">
+    <button mat-flat-button color="primary" (click)="goToQuizzes()">К списку тестов</button>
+    <button mat-stroked-button color="basic" routerLink="/quizzes">Пройти другую</button>
+  </div>
+</mat-card>

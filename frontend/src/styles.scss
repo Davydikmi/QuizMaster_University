@@ -1,0 +1,79 @@
+@use './theme' as theme;
+
+@include theme.app-theme;
+
+:root {
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  color: var(--text-primary);
+  background: #f5f8ff;
+  line-height: 1.5;
+}
+
+html,
+body {
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  background: linear-gradient(180deg, #eff6ff 0%, #f8fbff 100%);
+  color: var(--text-primary);
+  font-family: inherit;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+img,
+svg {
+  max-width: 100%;
+  display: block;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at top left, rgba(37, 99, 235, 0.14), transparent 32%),
+    radial-gradient(circle at bottom right, rgba(96, 165, 250, 0.12), transparent 30%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.app-root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.mat-card,
+.mat-toolbar,
+.mat-form-field {
+  border-radius: 1.5rem;
+}
+
+.mat-form-field-wrapper {
+  padding: 0.9rem 1rem;
+}
+
+::selection {
+  background: rgba(37, 99, 235, 0.18);
+}
+
+button.mat-flat-button,
+button.mat-raised-button,
+button.mat-stroked-button,
+button.mat-button {
+  text-transform: none;
+}
+

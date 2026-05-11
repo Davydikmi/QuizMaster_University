@@ -1,0 +1,15 @@
+/* Global styles for QuizMaster University */
+
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+
+.accent-color {
+  color: #42a5f5; /* Light blue */
+}
+
+.warn-color {
+  color: #f44336; /* Red */
+}
