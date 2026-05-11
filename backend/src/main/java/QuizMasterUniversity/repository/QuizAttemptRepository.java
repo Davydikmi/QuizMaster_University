@@ -1,6 +1,7 @@
 package QuizMasterUniversity.repository;
 
 import QuizMasterUniversity.dto.QuizResultProjection;
+import QuizMasterUniversity.entity.AttemptStatus;
 import QuizMasterUniversity.entity.QuizAttempt;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -44,4 +45,16 @@ public interface QuizAttemptRepository extends JpaRepository<QuizAttempt, Long> 
             "WHERE qa.quiz_id = :quizId AND qa.status IN ('COMPLETED', 'TIMEOUT')",
             nativeQuery = true)
     BigDecimal findAverageScoreByQuizId(@Param("quizId") Long quizId);
+
+    boolean existsByQuizIdAndStudentIdAndStatus(Long quizId, Long studentId, AttemptStatus status);
+
+    boolean existsByQuizIdAndStudentIdAndStatusIn(Long quizId, Long studentId, List<AttemptStatus> statuses);
+
+    Optional<QuizAttempt> findTopByQuizIdAndStudentIdAndStatusInOrderByFinishedAtDesc(
+            Long quizId,
+            Long studentId,
+            List<AttemptStatus> statuses
+    );
+
+    void deleteByQuizId(Long quizId);
 }

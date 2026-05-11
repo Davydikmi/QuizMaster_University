@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -8,6 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
 import { AdminService, AdminStudyGroup } from '../../../services/admin.service';
 import { StudyGroupDialogComponent } from './study-group-dialog.component';
+import { ConfirmDialogComponent } from '../../teacher/dialogs/confirm-dialog.component';
 
 @Component({
   selector: 'app-study-groups',
@@ -20,14 +21,17 @@ export class StudyGroupsComponent implements OnInit {
   displayedColumns = ['name', 'courseNumber', 'speciality', 'actions'];
   groups: AdminStudyGroup[] = [];
 
-  constructor(private adminService: AdminService, private dialog: MatDialog) {}
+  constructor(private adminService: AdminService, private dialog: MatDialog, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     this.loadGroups();
   }
 
   loadGroups(): void {
-    this.adminService.getGroups().subscribe((groups) => (this.groups = groups));
+    this.adminService.getGroups().subscribe((groups) => {
+      this.groups = groups;
+      this.cdr.detectChanges();
+    });
   }
 
   openDialog(group?: AdminStudyGroup): void {
@@ -49,6 +53,19 @@ export class StudyGroupsComponent implements OnInit {
   }
 
   remove(group: AdminStudyGroup): void {
-    this.adminService.deleteGroup(group.id).subscribe(() => this.loadGroups());
+    const ref = this.dialog.open(ConfirmDialogComponent, {
+      width: '440px',
+      data: {
+        title: 'Удалить учебную группу?',
+        message: `Группа "${group.name}" будет удалена вместе со студентами этой группы, их попытками и назначениями тестов.`
+      }
+    });
+
+    ref.afterClosed().subscribe((confirmed) => {
+      if (!confirmed) {
+        return;
+      }
+      this.adminService.deleteGroup(group.id).subscribe(() => this.loadGroups());
+    });
   }
 }

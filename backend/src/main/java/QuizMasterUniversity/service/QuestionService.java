@@ -105,6 +105,10 @@ public class QuestionService {
             return quizRepository.findById(quizId)
                     .orElseThrow(() -> new IllegalArgumentException("Quiz not found"));
         }
+        if (isCurrentUserStudent()) {
+            return quizRepository.findById(quizId)
+                    .orElseThrow(() -> new IllegalArgumentException("Quiz not found"));
+        }
         String email = getCurrentUserEmail();
         return quizRepository.findByIdAndCreatorEmail(quizId, email)
                 .orElseThrow(() -> new IllegalArgumentException("Quiz not found or access denied"));
@@ -139,10 +143,18 @@ public class QuestionService {
     }
 
     private QuestionOptionResponse convertOptionResponse(QuestionOption option) {
-        return QuestionOptionResponse.builder()
+        QuestionOptionResponse.QuestionOptionResponseBuilder builder = QuestionOptionResponse.builder()
                 .id(option.getId())
-                .text(option.getText())
-                .isCorrect(option.getIsCorrect())
-                .build();
+                .text(option.getText());
+        if (!isCurrentUserStudent()) {
+            builder.isCorrect(option.getIsCorrect());
+        }
+        return builder.build();
+    }
+
+    private boolean isCurrentUserStudent() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_STUDENT"));
     }
 }

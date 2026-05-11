@@ -24,6 +24,11 @@
 .quiz-card {
   border: 1px solid rgba(37, 99, 235, 0.12);
   box-shadow: var(--shadow-card);
+  border-radius: 18px;
+}
+
+.quiz-card-header {
+  padding-bottom: 0.25rem;
 }
 
 .quiz-avatar {
@@ -32,15 +37,55 @@
   border-radius: 12px;
   display: grid;
   place-items: center;
+  font-weight: 800;
 }
 
-.quiz-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-top: 1rem;
+.quiz-title {
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.quiz-course {
+  font-weight: 700;
+  color: #1d4ed8;
+}
+
+.quiz-teacher {
+  margin-top: 0.25rem;
   color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.quiz-description {
+  margin: 0.75rem 0 1rem;
+  line-height: 1.5;
+}
+
+.quiz-meta-list {
+  display: grid;
+  gap: 0.45rem;
   font-size: 0.95rem;
+}
+
+.quiz-meta-list div {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.8fr) 1fr;
+  gap: 0.75rem;
+}
+
+.quiz-meta-list span {
+  color: var(--text-secondary);
+}
+
+.quiz-meta-list strong {
+  color: var(--text-primary);
+  font-weight: 650;
+}
+
+mat-card-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
 .empty-state,
@@ -58,4 +103,20 @@
 .error-message {
   gap: 0.5rem;
   color: #b91c1c;
+}
+
+@media (max-width: 720px) {
+  .student-hero {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .quiz-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .quiz-meta-list div {
+    grid-template-columns: 1fr;
+    gap: 0.1rem;
+  }
 }

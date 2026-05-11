@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -37,7 +37,8 @@ export class RegisterComponent implements OnInit {
     private fb: FormBuilder,
     private authService: AuthService,
     private snackBar: MatSnackBar,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {
     this.form = this.fb.group({
       firstName: ['', [Validators.required]],
@@ -62,7 +63,10 @@ export class RegisterComponent implements OnInit {
 
   ngOnInit(): void {
     this.authService.getStudyGroups().subscribe({
-      next: (groups) => (this.groups = groups)
+      next: (groups) => {
+        this.groups = groups;
+        this.cdr.detectChanges();
+      }
     });
   }
 
@@ -75,11 +79,13 @@ export class RegisterComponent implements OnInit {
     this.authService.register(this.form.getRawValue() as RegisterRequest).subscribe({
       next: () => {
         this.loading = false;
+        this.cdr.detectChanges();
         this.snackBar.open('Регистрация прошла успешно.', 'ОК', { duration: 2500 });
         this.router.navigate(['/quizzes']);
       },
       error: () => {
         this.loading = false;
+        this.cdr.detectChanges();
         this.snackBar.open('Ошибка регистрации. Проверьте данные.', 'ОК', { duration: 3000 });
       }
     });

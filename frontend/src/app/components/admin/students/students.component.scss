@@ -1,7 +1,12 @@
 .teacher-card {
   padding: 1rem;
+  overflow-x: auto;
 }
 
 .teacher-header {
   margin-bottom: 1rem;
+}
+
+.teacher-table {
+  min-width: 760px;
 }

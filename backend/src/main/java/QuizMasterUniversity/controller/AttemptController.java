@@ -28,8 +28,11 @@ public class AttemptController {
 
     @PostMapping("/start/{quizId}")
     @PreAuthorize("hasRole('STUDENT')")
-    public ResponseEntity<AttemptStartResponse> startAttempt(@PathVariable Long quizId) {
-        return ResponseEntity.ok(attemptService.startAttempt(quizId));
+    public ResponseEntity<AttemptStartResponse> startAttempt(
+            @PathVariable Long quizId,
+            @RequestParam(defaultValue = "false") boolean retake
+    ) {
+        return ResponseEntity.ok(attemptService.startAttempt(quizId, retake));
     }
 
     @PostMapping("/{attemptId}/answer")
@@ -51,5 +54,12 @@ public class AttemptController {
     @PreAuthorize("hasRole('STUDENT')")
     public ResponseEntity<List<AttemptResponse>> getMyResults() {
         return ResponseEntity.ok(attemptService.getMyResults());
+    }
+
+    @DeleteMapping("/{attemptId}")
+    @PreAuthorize("hasAnyRole('ADMIN','TEACHER')")
+    public ResponseEntity<Void> deleteAttempt(@PathVariable Long attemptId) {
+        attemptService.deleteAttempt(attemptId);
+        return ResponseEntity.noContent().build();
     }
 }

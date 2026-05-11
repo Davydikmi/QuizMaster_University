@@ -53,9 +53,14 @@
   font-weight: 500;
 }
 
-.nav-item.mat-list-item-active,
-.nav-item:hover {
+.nav-item:hover,
+.nav-item.active {
   background: rgba(37, 99, 235, 0.12);
+}
+
+.nav-item.active {
+  color: #1d4ed8;
+  font-weight: 800;
 }
 
 .top-navbar {
@@ -269,10 +274,7 @@
 
 @media (max-width: 900px) {
   .layout-sidebar {
-    position: static;
-    width: 100%;
-    border-right: none;
-    box-shadow: none;
+    width: 240px;
   }
 
   .top-navbar {

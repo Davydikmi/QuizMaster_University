@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -35,7 +35,8 @@ export class AddQuestionsComponent implements OnInit {
   constructor(
     private teacherService: TeacherService,
     private fb: FormBuilder,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -43,13 +44,19 @@ export class AddQuestionsComponent implements OnInit {
       quizId: [null, Validators.required]
     });
 
-    this.teacherService.getQuizzes().subscribe((quizzes) => (this.quizzes = quizzes));
+    this.teacherService.getQuizzes().subscribe((quizzes) => {
+      this.quizzes = quizzes;
+      this.cdr.detectChanges();
+    });
     this.quizForm.get('quizId')?.valueChanges.subscribe((id) => this.loadQuestions(id));
   }
 
   loadQuestions(quizId: number): void {
     this.selectedQuiz = this.quizzes.find((quiz) => quiz.id === quizId);
-    this.teacherService.getQuestionsForQuiz(quizId).subscribe((questions) => (this.questions = questions));
+    this.teacherService.getQuestionsForQuiz(quizId).subscribe((questions) => {
+      this.questions = questions;
+      this.cdr.detectChanges();
+    });
   }
 
   openQuestionDialog(): void {

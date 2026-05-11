@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
@@ -38,16 +38,26 @@ export class QuizTakeComponent implements OnInit {
   score = 0;
   total = 0;
   quizTitle = '';
+  quizDescription = '';
   courseName = '';
+  teacherName = '';
+  durationSeconds = 0;
+  availableFrom: string | null = null;
+  dueDate: string | null = null;
+  questionCount = 0;
   isExpired = false;
   attemptId: number | null = null;
   saving = false;
+  isContinuing = false;
+  loadError = '';
+  questionsLoading = true;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private quizService: QuizService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -57,22 +67,57 @@ export class QuizTakeComponent implements OnInit {
       return;
     }
 
+    const retake = history.state?.retake === true;
+
     this.quizService
-      .startAttempt(this.quizId)
+      .startAttempt(this.quizId, retake)
       .subscribe({
         next: (attempt) => {
+          if (attempt.status === 'COMPLETED' || attempt.status === 'TIMEOUT') {
+            this.router.navigate(['/results', this.quizId]);
+            return;
+          }
           this.attemptId = attempt.attemptId;
           this.quizTitle = attempt.quizTitle;
-          this.loadQuiz();
+          this.quizDescription = attempt.description;
+          this.teacherName = attempt.teacherName;
+          this.courseName = attempt.courseName;
+          this.durationSeconds = attempt.remainingSeconds ?? (((attempt.timeLimitMinutes ?? 15) || 15) * 60);
+          this.questionCount = attempt.questionCount ?? 0;
+          this.availableFrom = attempt.availableFrom ? new Date(attempt.availableFrom).toLocaleString() : null;
+          this.dueDate = attempt.dueDate ? new Date(attempt.dueDate).toLocaleString() : null;
+          this.isContinuing = attempt.status === 'IN_PROGRESS';
+          if (attempt.questions?.length) {
+            this.questions = attempt.questions;
+            this.buildForm(attempt.questions);
+            this.questionsLoading = false;
+            this.cdr.detectChanges();
+          } else {
+            this.loadQuiz();
+          }
         },
-        error: () => this.router.navigate(['/quizzes'])
+        error: (error) => {
+          const message = error.error?.message || '';
+          if (message.includes('Maximum number of attempts reached')) {
+            this.questionsLoading = false;
+            this.loadError = 'Количество попыток для этого теста исчерпано.';
+            return;
+          }
+          this.questionsLoading = false;
+          this.loadError = message || 'Не удалось начать тест. Попробуйте позже.';
+          this.cdr.detectChanges();
+          console.error('Error starting attempt:', error);
+        }
       });
   }
 
   private loadQuiz(): void {
+    this.questionsLoading = true;
+
     this.quizService.getQuiz(this.quizId).subscribe({
       next: (quiz: Quiz) => {
         this.courseName = quiz.courseName;
+        this.cdr.detectChanges();
       }
     });
 
@@ -80,8 +125,15 @@ export class QuizTakeComponent implements OnInit {
       next: (questions) => {
         this.questions = questions;
         this.buildForm(questions);
+        this.questionsLoading = false;
+        this.cdr.detectChanges();
       },
-      error: () => this.router.navigate(['/quizzes'])
+      error: (error) => {
+        this.questionsLoading = false;
+        this.loadError = 'Не удалось загрузить вопросы теста.';
+        this.cdr.detectChanges();
+        console.error('Error loading questions:', error);
+      }
     });
   }
 
@@ -100,7 +152,7 @@ export class QuizTakeComponent implements OnInit {
   }
 
   get answerControls(): FormArray {
-    return this.form.get('answers') as FormArray;
+    return (this.form?.get('answers') as FormArray) ?? this.fb.array([]);
   }
 
   get progress(): number {

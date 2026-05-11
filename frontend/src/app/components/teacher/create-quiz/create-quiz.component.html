@@ -45,6 +45,12 @@
         </mat-select>
       </mat-form-field>
 
+      <div class="full-width group-select-actions">
+        <button mat-stroked-button color="primary" type="button" (click)="toggleAllGroups()">
+          {{ allGroupsSelected ? 'Снять выбор со всех групп' : 'Выбрать все группы' }}
+        </button>
+      </div>
+
       <mat-form-field appearance="fill">
         <mat-label>Доступен с</mat-label>
         <input matInput type="datetime-local" formControlName="availableFrom" />

@@ -1,9 +1,26 @@
-<mat-card class="result-card">
+<mat-card class="result-card" *ngIf="loading">
+  <div class="result-header">
+    <div>
+      <span class="eyebrow">Результаты</span>
+      <h1>Загружаем результат...</h1>
+    </div>
+    <mat-icon>hourglass_empty</mat-icon>
+  </div>
+</mat-card>
+
+<mat-card class="result-card" *ngIf="!loading && result">
+  <div class="result-error" *ngIf="error">
+    <mat-icon>info</mat-icon>
+    <span>{{ error }}</span>
+  </div>
+
   <div class="result-header">
     <div>
       <span class="eyebrow">Результаты</span>
       <h1>{{ result.quizTitle }}</h1>
-      <p>Время прохождения завершено: {{ result.finishedAt | date:'medium' }}</p>
+      <span class="result-status" [class.passed]="passed" [class.failed]="!passed">
+        {{ passed ? 'Сдано' : 'Не сдано' }}
+      </span>
     </div>
     <mat-icon>auto_graph</mat-icon>
   </div>
@@ -13,11 +30,11 @@
   <div class="result-summary">
     <div>
       <span>Набрано баллов</span>
-      <strong>{{ result.score }}</strong>
+      <strong>{{ result.score | number:'1.2-2' }}</strong>
     </div>
     <div>
       <span>Макс. баллов</span>
-      <strong>{{ result.maxScore }}</strong>
+      <strong>{{ result.maxScore | number:'1.2-2' }}</strong>
     </div>
     <div>
       <span>Процент</span>
@@ -25,8 +42,25 @@
     </div>
   </div>
 
+  <mat-divider></mat-divider>
+
+  <div class="result-details">
+    <div class="detail-item">
+      <span>Начало теста:</span>
+      <p>{{ result.startedAt | date:'medium' }}</p>
+    </div>
+    <div class="detail-item">
+      <span>Завершение теста:</span>
+      <p>{{ result.finishedAt | date:'medium' }}</p>
+    </div>
+    <div class="detail-item">
+      <span>Статус:</span>
+      <p>{{ result.status === 'COMPLETED' ? 'Завершено' : 'Время истекло' }}</p>
+    </div>
+  </div>
+
   <div class="result-actions">
     <button mat-flat-button color="primary" (click)="goToQuizzes()">К списку тестов</button>
-    <button mat-stroked-button color="basic" routerLink="/quizzes">Пройти другую</button>
+    <button mat-stroked-button color="basic" (click)="retakeQuiz()">Пройти повторно</button>
   </div>
 </mat-card>

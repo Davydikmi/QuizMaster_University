@@ -213,4 +213,8 @@ export class TeacherService {
   assignQuizToGroup(quizId: number, groupId: number, payload: QuizAssignmentRequest): Observable<void> {
     return this.http.post<void>(`${this.apiUrl}/quizzes/${quizId}/assign/${groupId}`, payload);
   }
+
+  deleteAttempt(attemptId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/attempts/${attemptId}`);
+  }
 }

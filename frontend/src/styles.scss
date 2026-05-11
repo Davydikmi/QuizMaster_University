@@ -77,3 +77,90 @@ button.mat-button {
   text-transform: none;
 }
 
+button[mat-flat-button],
+button[mat-raised-button],
+button[mat-stroked-button],
+button[mat-button] {
+  border-radius: 999px !important;
+  min-height: 2.55rem;
+  padding: 0 1.1rem !important;
+  font-weight: 700;
+  letter-spacing: 0;
+  transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease, border-color 0.16s ease;
+}
+
+button[mat-flat-button]:not(:disabled),
+button[mat-raised-button]:not(:disabled) {
+  box-shadow: 0 12px 28px rgba(37, 99, 235, 0.22);
+}
+
+button[mat-flat-button]:not(:disabled):hover,
+button[mat-raised-button]:not(:disabled):hover,
+button[mat-stroked-button]:not(:disabled):hover,
+button[mat-button]:not(:disabled):hover {
+  transform: translateY(-1px);
+}
+
+button[mat-stroked-button]:not(:disabled) {
+  border-color: rgba(37, 99, 235, 0.35) !important;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
+}
+
+button[color='warn']:not(:disabled) {
+  border-color: rgba(220, 38, 38, 0.35) !important;
+  box-shadow: 0 10px 24px rgba(220, 38, 38, 0.12);
+}
+
+button.mat-mdc-icon-button {
+  border-radius: 14px !important;
+  background: rgba(255, 255, 255, 0.18);
+  transition: background 0.16s ease, transform 0.16s ease;
+}
+
+button.mat-mdc-icon-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.mat-mdc-form-field {
+  --mdc-outlined-text-field-container-shape: 16px;
+  --mdc-outlined-text-field-outline-color: rgba(37, 99, 235, 0.2);
+  --mdc-outlined-text-field-hover-outline-color: rgba(37, 99, 235, 0.55);
+  --mdc-outlined-text-field-focus-outline-color: #2563eb;
+  --mdc-filled-text-field-container-color: rgba(255, 255, 255, 0.82);
+  --mdc-filled-text-field-focus-active-indicator-color: #2563eb;
+  --mdc-filled-text-field-hover-active-indicator-color: rgba(37, 99, 235, 0.55);
+  --mdc-filled-text-field-active-indicator-color: rgba(37, 99, 235, 0.22);
+}
+
+.mat-mdc-text-field-wrapper {
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+  border-radius: 16px !important;
+}
+
+.mat-mdc-form-field-focus-overlay {
+  background: rgba(37, 99, 235, 0.05);
+}
+
+.mat-mdc-form-field-infix {
+  min-height: 3.35rem;
+}
+
+.mat-mdc-form-field.mat-focused .mat-mdc-text-field-wrapper {
+  box-shadow: 0 14px 32px rgba(37, 99, 235, 0.12);
+}
+
+.mat-mdc-select-panel {
+  border-radius: 16px !important;
+  box-shadow: 0 20px 48px rgba(15, 23, 42, 0.18) !important;
+}
+
+.table-sort-button {
+  min-height: 2rem !important;
+  padding: 0 0.55rem !important;
+  color: #1e3a8a !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}

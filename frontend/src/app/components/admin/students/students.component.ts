@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -18,16 +18,50 @@ export class StudentsComponent implements OnInit {
   displayedColumns = ['name', 'email', 'group', 'actions'];
   students: AdminUser[] = [];
   groups: AdminStudyGroup[] = [];
+  private sortState: { field: 'name' | 'group'; direction: 'asc' | 'desc' } = { field: 'name', direction: 'asc' };
 
-  constructor(private adminService: AdminService, private dialog: MatDialog) {}
+  constructor(private adminService: AdminService, private dialog: MatDialog, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     this.loadAll();
   }
 
   loadAll(): void {
-    this.adminService.getGroups().subscribe((groups) => (this.groups = groups));
-    this.adminService.getStudents().subscribe((students) => (this.students = students));
+    this.adminService.getGroups().subscribe((groups) => {
+      this.groups = groups;
+      this.cdr.detectChanges();
+    });
+    this.adminService.getStudents().subscribe((students) => {
+      this.students = students;
+      this.applySort();
+      this.cdr.detectChanges();
+    });
+  }
+
+  sortBy(field: 'name' | 'group'): void {
+    if (this.sortState.field === field) {
+      this.sortState.direction = this.sortState.direction === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortState = { field, direction: 'asc' };
+    }
+    this.applySort();
+    this.cdr.detectChanges();
+  }
+
+  sortLabel(field: 'name' | 'group'): string {
+    if (this.sortState.field !== field) {
+      return '↕';
+    }
+    return this.sortState.direction === 'asc' ? 'А-Я' : 'Я-А';
+  }
+
+  private applySort(): void {
+    const direction = this.sortState.direction === 'asc' ? 1 : -1;
+    this.students = [...this.students].sort((a, b) => {
+      const left = this.sortState.field === 'name' ? `${a.lastName} ${a.firstName}` : a.groupName || '';
+      const right = this.sortState.field === 'name' ? `${b.lastName} ${b.firstName}` : b.groupName || '';
+      return left.localeCompare(right, 'ru') * direction;
+    });
   }
 
   openStudentDialog(student: AdminUser): void {

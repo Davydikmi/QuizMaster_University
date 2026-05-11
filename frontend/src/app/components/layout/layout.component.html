@@ -1,5 +1,5 @@
 <mat-sidenav-container class="layout-shell">
-  <mat-sidenav class="layout-sidebar" mode="side" opened disableClose>
+  <mat-sidenav #sidenav class="layout-sidebar" mode="side" opened disableClose>
     <div class="sidebar-brand">
       <div class="sidebar-logo">QM</div>
       <div>
@@ -11,30 +11,30 @@
     <mat-divider></mat-divider>
 
     <mat-nav-list>
-      <a mat-list-item class="nav-item" routerLink="/quizzes">
+      <a mat-list-item class="nav-item" routerLink="/quizzes" routerLinkActive="active">
         <span>Тесты</span>
       </a>
-      <a mat-list-item class="nav-item" routerLink="/profile">
+      <a mat-list-item class="nav-item" routerLink="/profile" routerLinkActive="active">
         <span>Профиль</span>
       </a>
       <ng-container *ngIf="isTeacherAreaVisible">
         <mat-divider></mat-divider>
-        <a mat-list-item class="nav-item" routerLink="/teacher/courses" *ngIf="isAdmin">
+        <a mat-list-item class="nav-item" routerLink="/teacher/courses" routerLinkActive="active" *ngIf="isAdmin">
           <span>Курсы</span>
         </a>
-        <a mat-list-item class="nav-item" routerLink="/teacher/create-quiz">
+        <a mat-list-item class="nav-item" routerLink="/teacher/create-quiz" routerLinkActive="active">
           <span>Создать тест</span>
         </a>
-        <a mat-list-item class="nav-item" routerLink="/teacher/add-questions">
+        <a mat-list-item class="nav-item" routerLink="/teacher/add-questions" routerLinkActive="active">
           <span>Добавить вопросы</span>
         </a>
-        <a mat-list-item class="nav-item" routerLink="/teacher/results">
+        <a mat-list-item class="nav-item" routerLink="/teacher/results" routerLinkActive="active">
           <span>Результаты</span>
         </a>
-        <a mat-list-item class="nav-item" routerLink="/admin/study-groups" *ngIf="isAdmin">
+        <a mat-list-item class="nav-item" routerLink="/admin/study-groups" routerLinkActive="active" *ngIf="isAdmin">
           <span>Учебные группы</span>
         </a>
-        <a mat-list-item class="nav-item" routerLink="/admin/students" *ngIf="isAdmin">
+        <a mat-list-item class="nav-item" routerLink="/admin/students" routerLinkActive="active" *ngIf="isAdmin">
           <span>Студенты</span>
         </a>
       </ng-container>
@@ -43,7 +43,7 @@
 
   <mat-sidenav-content class="layout-content">
     <mat-toolbar color="primary" class="top-navbar">
-      <button mat-icon-button class="menu-button" aria-label="Toggle navigation">
+      <button mat-icon-button class="menu-button" aria-label="Toggle navigation" (click)="sidenav.toggle()">
         <mat-icon>menu</mat-icon>
       </button>
       <span class="top-navbar-title">QuizMaster Университет</span>

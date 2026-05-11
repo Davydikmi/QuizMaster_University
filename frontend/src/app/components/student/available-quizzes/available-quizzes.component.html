@@ -11,23 +11,32 @@
 
 <div class="quiz-grid">
   <mat-card *ngFor="let quiz of quizzes" class="quiz-card">
-    <mat-card-header>
+    <mat-card-header class="quiz-card-header">
       <div mat-card-avatar class="quiz-avatar">Q</div>
-      <mat-card-title>{{ quiz.title }}</mat-card-title>
-      <mat-card-subtitle>{{ quiz.creatorEmail || 'Преподаватель' }}</mat-card-subtitle>
+      <div>
+        <mat-card-title class="quiz-title">{{ quiz.title }}</mat-card-title>
+        <mat-card-subtitle class="quiz-course">{{ quiz.courseName || 'Курс не указан' }}</mat-card-subtitle>
+        <div class="quiz-teacher">{{ quiz.creatorName || quiz.creatorEmail || 'Преподаватель не указан' }}</div>
+      </div>
     </mat-card-header>
 
     <mat-card-content>
-      <p>{{ quiz.description }}</p>
-      <div class="quiz-meta">
-        <span>{{ quiz.questions.length || 0 }} вопросов</span>
-        <span>Последнее обновление: {{ quiz.updatedAt | date:'shortDate' }}</span>
+      <p class="quiz-description">{{ quiz.description }}</p>
+      <div class="quiz-meta-list">
+        <div><span>Вопросы</span><strong>{{ quiz.questionCount ?? 0 }}</strong></div>
+        <div><span>Начало</span><strong>{{ quiz.availableFrom ? (quiz.availableFrom | date:'dd.MM.yyyy HH:mm') : 'не назначено' }}</strong></div>
+        <div><span>Окончание</span><strong>{{ quiz.dueDate ? (quiz.dueDate | date:'dd.MM.yyyy HH:mm') : 'не назначено' }}</strong></div>
+        <div><span>Кол-во попыток</span><strong>{{ quiz.maxAttempts }}</strong></div>
+        <div><span>Время на выполнение</span><strong>{{ quiz.timeLimitMinutes }} мин</strong></div>
       </div>
     </mat-card-content>
 
     <mat-card-actions>
       <button mat-stroked-button color="primary" [disabled]="role !== 'STUDENT'" (click)="openQuiz(quiz.id)">
-        {{ role === 'STUDENT' ? 'Начать тест' : 'Доступно студентам' }}
+        {{ role === 'STUDENT' ? (quiz.hasCompletedAttempt ? 'Результаты' : (quiz.hasInProgressAttempt ? 'Продолжить тест' : 'Начать тест')) : 'Доступно студентам' }}
+      </button>
+      <button mat-stroked-button color="warn" *ngIf="role === 'ADMIN'" (click)="deleteQuiz(quiz)">
+        Удалить
       </button>
     </mat-card-actions>
   </mat-card>

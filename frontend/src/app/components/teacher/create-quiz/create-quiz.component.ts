@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -39,23 +39,32 @@ export class CreateQuizComponent implements OnInit {
     private fb: FormBuilder,
     private teacherService: TeacherService,
     private snackBar: MatSnackBar,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
+    const now = new Date();
+    const oneHourLater = new Date(now.getTime() + 60 * 60 * 1000);
     this.quizForm = this.fb.group({
       title: ['', [Validators.required]],
       courseId: [null, [Validators.required]],
       description: ['', [Validators.required]],
-      timeLimitMinutes: [20, [Validators.required, Validators.min(5)]],
+      timeLimitMinutes: [60, [Validators.required, Validators.min(5)]],
       maxAttempts: [1, [Validators.required, Validators.min(1)]],
       groupIds: [[], [Validators.required]],
-      availableFrom: [new Date().toISOString().slice(0, 16), [Validators.required]],
-      dueDate: [new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16), [Validators.required]]
+      availableFrom: [this.toLocalInputValue(now), [Validators.required]],
+      dueDate: [this.toLocalInputValue(oneHourLater), [Validators.required]]
     });
 
-    this.teacherService.getCourses().subscribe((courses) => (this.courses = courses));
-    this.teacherService.getStudyGroups().subscribe((groups) => (this.groups = groups));
+    this.teacherService.getCourses().subscribe((courses) => {
+      this.courses = courses;
+      this.cdr.detectChanges();
+    });
+    this.teacherService.getStudyGroups().subscribe((groups) => {
+      this.groups = groups;
+      this.cdr.detectChanges();
+    });
   }
 
   submit(): void {
@@ -92,5 +101,23 @@ export class CreateQuizComponent implements OnInit {
         }
       });
     });
+  }
+
+  toggleAllGroups(): void {
+    const selected = (this.quizForm.value.groupIds as number[]) ?? [];
+    const allIds = this.groups.map((group) => group.id);
+    this.quizForm.patchValue({
+      groupIds: selected.length === allIds.length ? [] : allIds
+    });
+    this.cdr.detectChanges();
+  }
+
+  get allGroupsSelected(): boolean {
+    return this.groups.length > 0 && ((this.quizForm?.value.groupIds as number[]) ?? []).length === this.groups.length;
+  }
+
+  private toLocalInputValue(date: Date): string {
+    const offsetDate = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
+    return offsetDate.toISOString().slice(0, 16);
   }
 }

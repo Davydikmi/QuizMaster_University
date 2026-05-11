@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -31,14 +31,17 @@ export class CoursesComponent implements OnInit {
   displayedColumns = ['name', 'description', 'teacherEmail', 'actions'];
   courses: Course[] = [];
 
-  constructor(private teacherService: TeacherService, private dialog: MatDialog) {}
+  constructor(private teacherService: TeacherService, private dialog: MatDialog, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     this.loadCourses();
   }
 
   loadCourses(): void {
-    this.teacherService.getCourses().subscribe((courses) => (this.courses = courses));
+    this.teacherService.getCourses().subscribe((courses) => {
+      this.courses = courses;
+      this.cdr.detectChanges();
+    });
   }
 
   openCourseDialog(course?: Course): void {

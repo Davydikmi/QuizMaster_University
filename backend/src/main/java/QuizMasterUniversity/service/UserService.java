@@ -5,12 +5,15 @@ import QuizMasterUniversity.entity.StudyGroup;
 import QuizMasterUniversity.entity.User;
 import QuizMasterUniversity.entity.UserRole;
 import QuizMasterUniversity.repository.StudyGroupRepository;
+import QuizMasterUniversity.repository.AttemptAnswerRepository;
+import QuizMasterUniversity.repository.QuizAttemptRepository;
 import QuizMasterUniversity.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -23,6 +26,8 @@ public class UserService {
     private final UserRepository userRepository;
     private final StudyGroupRepository studyGroupRepository;
     private final PasswordEncoder passwordEncoder;
+    private final QuizAttemptRepository quizAttemptRepository;
+    private final AttemptAnswerRepository attemptAnswerRepository;
 
     public List<UserDto> getAllUsers() {
         return userRepository.findAll().stream()
@@ -72,8 +77,18 @@ public class UserService {
         });
     }
 
+    @Transactional
     public void deleteUser(Long id) {
-        userRepository.deleteById(id);
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        var attempts = quizAttemptRepository.findByStudentId(user.getId());
+        if (!attempts.isEmpty()) {
+            var attemptIds = attempts.stream().map(attempt -> attempt.getId()).toList();
+            attemptAnswerRepository.deleteSelectedOptionsByAttemptIds(attemptIds);
+            attemptAnswerRepository.deleteByAttemptIds(attemptIds);
+            quizAttemptRepository.deleteAll(attempts);
+        }
+        userRepository.delete(user);
     }
 
     public Optional<User> findByEmail(String email) {

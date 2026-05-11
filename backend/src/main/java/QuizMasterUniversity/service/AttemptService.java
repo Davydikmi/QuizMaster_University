@@ -4,6 +4,8 @@ import QuizMasterUniversity.dto.AttemptAnswerRequest;
 import QuizMasterUniversity.dto.AttemptResponse;
 import QuizMasterUniversity.dto.AttemptStartResponse;
 import QuizMasterUniversity.dto.AvailableAttemptResponse;
+import QuizMasterUniversity.dto.QuestionOptionResponse;
+import QuizMasterUniversity.dto.QuestionResponse;
 import QuizMasterUniversity.entity.AttemptAnswer;
 import QuizMasterUniversity.entity.Question;
 import QuizMasterUniversity.entity.QuestionOption;
@@ -55,7 +57,9 @@ public class AttemptService {
                 .filter(assignment -> !now.isBefore(assignment.getAvailableFrom()) && !now.isAfter(assignment.getDueDate()))
                 .map(assignment -> {
                     int maxAttempts = assignment.getQuiz().getMaxAttempts();
-                    long usedAttempts = quizAttemptRepository.countByQuizIdAndStudentId(assignment.getQuiz().getId(), student.getId());
+                    long usedAttempts = quizAttemptRepository.findByQuizIdAndStudentId(assignment.getQuiz().getId(), student.getId()).stream()
+                            .filter(attempt -> attempt.getStatus() == AttemptStatus.COMPLETED || attempt.getStatus() == AttemptStatus.TIMEOUT)
+                            .count();
                     int remaining = Math.max((int) (maxAttempts - usedAttempts), 0);
                     return AvailableAttemptResponse.builder()
                             .quizId(assignment.getQuiz().getId())
@@ -72,12 +76,46 @@ public class AttemptService {
 
     @Transactional
     public AttemptStartResponse startAttempt(Long quizId) {
+        return startAttempt(quizId, false);
+    }
+
+    @Transactional
+    public AttemptStartResponse startAttempt(Long quizId, boolean retake) {
         User student = getCurrentStudent();
         Quiz quiz = quizRepository.findById(quizId)
                 .orElseThrow(() -> new IllegalArgumentException("Quiz not found"));
 
         QuizAssignment assignment = findAssignmentForStudent(quiz, student);
+        if (assignment == null) {
+            throw new IllegalArgumentException("Quiz is not assigned to your study group");
+        }
         LocalDateTime now = LocalDateTime.now();
+
+        // Check if there's already an in-progress attempt and return it
+        QuizAttempt existingAttempt = quizAttemptRepository.findByQuizIdAndStudentId(quizId, student.getId()).stream()
+                .filter(attempt -> attempt.getStatus() == AttemptStatus.IN_PROGRESS)
+                .findFirst()
+                .orElse(null);
+
+        if (existingAttempt != null) {
+            if (getRemainingSeconds(existingAttempt, assignment, now) <= 0) {
+                completeAttempt(existingAttempt, AttemptStatus.TIMEOUT, now);
+                return buildAttemptStartResponse(existingAttempt, assignment);
+            }
+            return buildAttemptStartResponse(existingAttempt, assignment);
+        }
+
+        QuizAttempt completedAttempt = quizAttemptRepository
+                .findTopByQuizIdAndStudentIdAndStatusInOrderByFinishedAtDesc(
+                        quizId,
+                        student.getId(),
+                        List.of(AttemptStatus.COMPLETED, AttemptStatus.TIMEOUT)
+                )
+                .orElse(null);
+        if (completedAttempt != null && !retake) {
+            return buildAttemptStartResponse(completedAttempt, assignment);
+        }
+
         if (assignment != null) {
             if (now.isBefore(assignment.getAvailableFrom())) {
                 throw new IllegalArgumentException("Quiz is not yet available");
@@ -87,15 +125,11 @@ public class AttemptService {
             }
         }
 
-        long completedAttemptCount = quizAttemptRepository.countByQuizIdAndStudentId(quizId, student.getId());
+        long completedAttemptCount = quizAttemptRepository.findByQuizIdAndStudentId(quizId, student.getId()).stream()
+                .filter(attempt -> attempt.getStatus() == AttemptStatus.COMPLETED || attempt.getStatus() == AttemptStatus.TIMEOUT)
+                .count();
         if (completedAttemptCount >= quiz.getMaxAttempts()) {
             throw new IllegalArgumentException("Maximum number of attempts reached");
-        }
-
-        boolean inProgressExists = quizAttemptRepository.findByQuizIdAndStudentId(quizId, student.getId()).stream()
-                .anyMatch(attempt -> attempt.getStatus() == AttemptStatus.IN_PROGRESS);
-        if (inProgressExists) {
-            throw new IllegalArgumentException("There is already an attempt in progress for this quiz");
         }
 
         BigDecimal maxScore = calculateMaxScore(quiz);
@@ -109,13 +143,29 @@ public class AttemptService {
                 .build();
 
         QuizAttempt savedAttempt = quizAttemptRepository.save(attempt);
+        return buildAttemptStartResponse(savedAttempt, assignment);
+    }
+
+    private AttemptStartResponse buildAttemptStartResponse(QuizAttempt attempt, QuizAssignment assignment) {
+        Quiz quiz = attempt.getQuiz();
+        LocalDateTime now = LocalDateTime.now();
         return AttemptStartResponse.builder()
-                .attemptId(savedAttempt.getId())
+                .attemptId(attempt.getId())
                 .quizId(quiz.getId())
                 .quizTitle(quiz.getTitle())
-                .maxScore(maxScore)
-                .startedAt(savedAttempt.getStartedAt())
-                .status(savedAttempt.getStatus().name())
+                .description(quiz.getDescription())
+                .teacherName(quiz.getCreator().getFirstName() + " " + quiz.getCreator().getLastName())
+                .courseName(quiz.getCourse().getName())
+                .timeLimitMinutes(quiz.getTimeLimitMinutes())
+                .questionCount((int) questionRepository.countByQuizId(quiz.getId()))
+                .availableFrom(assignment != null ? assignment.getAvailableFrom() : null)
+                .dueDate(assignment != null ? assignment.getDueDate() : null)
+                .maxScore(attempt.getMaxScore())
+                .startedAt(attempt.getStartedAt())
+                .finishedAt(attempt.getFinishedAt())
+                .remainingSeconds(getRemainingSeconds(attempt, assignment, now))
+                .status(attempt.getStatus().name())
+                .questions(attempt.getStatus() == AttemptStatus.IN_PROGRESS ? getQuestionResponses(quiz.getId()) : List.of())
                 .build();
     }
 
@@ -161,18 +211,8 @@ public class AttemptService {
 
         LocalDateTime now = LocalDateTime.now();
         QuizAssignment assignment = findAssignmentForStudent(attempt.getQuiz(), attempt.getStudent());
-        if (assignment != null && now.isAfter(assignment.getDueDate())) {
-            attempt.setStatus(AttemptStatus.TIMEOUT);
-        } else {
-            attempt.setStatus(AttemptStatus.COMPLETED);
-        }
-        attempt.setFinishedAt(now);
-
-        BigDecimal totalScore = attemptAnswerRepository.findByAttempt(attempt).stream()
-                .map(AttemptAnswer::getScore)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-        attempt.setScore(totalScore);
-        quizAttemptRepository.save(attempt);
+        AttemptStatus status = getRemainingSeconds(attempt, assignment, now) <= 0 ? AttemptStatus.TIMEOUT : AttemptStatus.COMPLETED;
+        completeAttempt(attempt, status, now);
 
         return mapAttemptResponse(attempt);
     }
@@ -182,6 +222,18 @@ public class AttemptService {
         return quizAttemptRepository.findByStudentId(student.getId()).stream()
                 .map(this::mapAttemptResponse)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void deleteAttempt(Long attemptId) {
+        QuizAttempt attempt = quizAttemptRepository.findById(attemptId)
+                .orElseThrow(() -> new IllegalArgumentException("Attempt not found"));
+        deleteAttempts(List.of(attempt));
+    }
+
+    @Transactional
+    public void deleteAttemptsForQuiz(Long quizId) {
+        deleteAttempts(quizAttemptRepository.findByQuizId(quizId));
     }
 
     private QuizAttempt getAttemptForCurrentStudent(Long attemptId) {
@@ -199,7 +251,7 @@ public class AttemptService {
     private void validateAttemptWindow(QuizAttempt attempt) {
         LocalDateTime now = LocalDateTime.now();
         QuizAssignment assignment = findAssignmentForStudent(attempt.getQuiz(), attempt.getStudent());
-        if (assignment != null && now.isAfter(assignment.getDueDate())) {
+        if (getRemainingSeconds(attempt, assignment, now) <= 0) {
             throw new IllegalArgumentException("Cannot save answers after due date");
         }
     }
@@ -214,9 +266,59 @@ public class AttemptService {
     }
 
     private BigDecimal calculateMaxScore(Quiz quiz) {
-        return quiz.getQuestions().stream()
-                .map(question -> question.getPoints())
+        return questionRepository.findByQuizId(quiz.getId()).stream()
+                .map(Question::getPoints)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private Long getRemainingSeconds(QuizAttempt attempt, QuizAssignment assignment, LocalDateTime now) {
+        if (attempt.getStatus() != AttemptStatus.IN_PROGRESS) {
+            return 0L;
+        }
+        LocalDateTime attemptDeadline = attempt.getStartedAt().plusMinutes(attempt.getQuiz().getTimeLimitMinutes());
+        LocalDateTime deadline = assignment != null && assignment.getDueDate().isBefore(attemptDeadline)
+                ? assignment.getDueDate()
+                : attemptDeadline;
+        return Math.max(0L, java.time.Duration.between(now, deadline).getSeconds());
+    }
+
+    private void completeAttempt(QuizAttempt attempt, AttemptStatus status, LocalDateTime finishedAt) {
+        attempt.setStatus(status);
+        attempt.setFinishedAt(finishedAt);
+        BigDecimal totalScore = attemptAnswerRepository.findByAttempt(attempt).stream()
+                .map(AttemptAnswer::getScore)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        attempt.setScore(totalScore);
+        quizAttemptRepository.save(attempt);
+    }
+
+    private void deleteAttempts(List<QuizAttempt> attempts) {
+        if (attempts.isEmpty()) {
+            return;
+        }
+        List<Long> ids = attempts.stream().map(QuizAttempt::getId).toList();
+        attemptAnswerRepository.deleteSelectedOptionsByAttemptIds(ids);
+        attemptAnswerRepository.deleteByAttemptIds(ids);
+        quizAttemptRepository.deleteAll(attempts);
+    }
+
+    private List<QuestionResponse> getQuestionResponses(Long quizId) {
+        return questionRepository.findByQuizId(quizId).stream()
+                .map(question -> QuestionResponse.builder()
+                        .id(question.getId())
+                        .quizId(question.getQuiz().getId())
+                        .text(question.getText())
+                        .type(question.getType().name())
+                        .points(question.getPoints())
+                        .orderNum(question.getOrderNum())
+                        .options(question.getQuestionOptions().stream()
+                                .map(option -> QuestionOptionResponse.builder()
+                                        .id(option.getId())
+                                        .text(option.getText())
+                                        .build())
+                                .toList())
+                        .build())
+                .toList();
     }
 
     private BigDecimal gradeQuestion(Question question, List<QuestionOption> selectedOptions) {

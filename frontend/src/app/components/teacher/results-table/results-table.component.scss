@@ -2,6 +2,7 @@
   padding: 1.5rem;
   border-radius: 28px;
   border: 1px solid rgba(37, 99, 235, 0.12);
+  overflow-x: auto;
 }
 
 .teacher-header {
@@ -10,6 +11,7 @@
 
 .teacher-table {
   width: 100%;
+  min-width: 920px;
 }
 
 .mat-header-cell {
@@ -19,6 +21,16 @@
 
 .mat-chip {
   border-radius: 999px;
+}
+
+.status-chip.passed {
+  background: rgba(22, 163, 74, 0.12) !important;
+  color: #15803d !important;
+}
+
+.status-chip.failed {
+  background: rgba(220, 38, 38, 0.12) !important;
+  color: #b91c1c !important;
 }
 
 .mat-row:hover {

@@ -9,13 +9,20 @@ export interface Quiz {
   description: string;
   creatorId: number;
   creatorEmail: string;
+  creatorName?: string;
   courseId: number;
   courseName: string;
+  hasInProgressAttempt?: boolean;
+  hasCompletedAttempt?: boolean;
+  questionCount?: number;
+  availableFrom?: string;
+  dueDate?: string;
+  attemptsRemaining?: number;
   timeLimitMinutes: number;
   maxAttempts: number;
   createdAt: string;
   updatedAt: string;
-  questions: Question[];
+  questions?: Question[];
 }
 
 export interface AvailableAttempt {
@@ -31,9 +38,19 @@ export interface AttemptStartResponse {
   attemptId: number;
   quizId: number;
   quizTitle: string;
+  description: string;
+  teacherName: string;
+  courseName: string;
+  timeLimitMinutes: number;
+  questionCount: number;
+  availableFrom?: string;
+  dueDate?: string;
   maxScore: number;
   startedAt: string;
+  finishedAt?: string;
+  remainingSeconds?: number;
   status: string;
+  questions?: Question[];
 }
 
 export interface AttemptResponse {
@@ -70,7 +87,7 @@ export interface Question {
 export interface Answer {
   id: number;
   text: string;
-  isCorrect: boolean;
+  isCorrect?: boolean;
 }
 
 interface PagedResponse<T> {
@@ -123,8 +140,8 @@ export class QuizService {
     return this.http.get<AvailableAttempt[]>(`${this.apiUrl}/attempts/available`);
   }
 
-  startAttempt(quizId: number): Observable<AttemptStartResponse> {
-    return this.http.post<AttemptStartResponse>(`${this.apiUrl}/attempts/start/${quizId}`, {});
+  startAttempt(quizId: number, retake = false): Observable<AttemptStartResponse> {
+    return this.http.post<AttemptStartResponse>(`${this.apiUrl}/attempts/start/${quizId}?retake=${retake}`, {});
   }
 
   saveAnswer(attemptId: number, questionId: number, selectedOptionIds: number[]): Observable<AttemptResponse> {
@@ -136,5 +153,9 @@ export class QuizService {
 
   finishAttempt(attemptId: number): Observable<AttemptResponse> {
     return this.http.post<AttemptResponse>(`${this.apiUrl}/attempts/${attemptId}/finish`, {});
+  }
+
+  getMyResults(): Observable<AttemptResponse[]> {
+    return this.http.get<AttemptResponse[]>(`${this.apiUrl}/attempts/my-results`);
   }
 }

@@ -19,8 +19,15 @@ public class QuizResponse {
     private String courseName;
     private Long creatorId;
     private String creatorEmail;
+    private String creatorName;
+    private Boolean hasInProgressAttempt;
+    private Boolean hasCompletedAttempt;
+    private Integer questionCount;
     private Integer timeLimitMinutes;
     private Integer maxAttempts;
+    private Integer attemptsRemaining;
+    private LocalDateTime availableFrom;
+    private LocalDateTime dueDate;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

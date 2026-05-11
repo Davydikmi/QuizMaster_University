@@ -13,4 +13,8 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
     List<Question> findByQuizId(Long quizId);
 
     Optional<Question> findByIdAndQuizId(Long id, Long quizId);
+
+    long countByQuizId(Long quizId);
+
+    void deleteByQuizId(Long quizId);
 }

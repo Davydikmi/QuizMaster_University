@@ -1,47 +1,90 @@
 <div class="quiz-header">
   <div>
-    <span class="eyebrow">Прохождение теста</span>
+    <span class="eyebrow" *ngIf="!isContinuing">Прохождение теста</span>
+    <span class="eyebrow" *ngIf="isContinuing" style="color: #ff9800;">Продолжение теста</span>
     <h1>{{ quizTitle }}</h1>
-    <p *ngIf="courseName">Курс: {{ courseName }}</p>
+    <p *ngIf="quizDescription">{{ quizDescription }}</p>
+    <div class="quiz-metadata">
+      <p *ngIf="teacherName">Преподаватель: {{ teacherName }}</p>
+      <p *ngIf="courseName">Курс: {{ courseName }}</p>
+      <p>Вопросов: {{ questionCount }}</p>
+      <p>Длительность: {{ durationSeconds / 60 }} мин</p>
+      <p *ngIf="availableFrom">Доступен с: {{ availableFrom }}</p>
+      <p *ngIf="dueDate">Доступен до: {{ dueDate }}</p>
+    </div>
   </div>
-  <app-timer [durationSeconds]="900" (expired)="onTimerExpired()"></app-timer>
+  <app-timer [durationSeconds]="durationSeconds" (expired)="onTimerExpired()"></app-timer>
 </div>
 
 <mat-progress-bar [value]="progress" color="accent"></mat-progress-bar>
 <div class="quiz-status">Заполнено {{ progress }}%</div>
 
-<mat-card class="quiz-card" *ngIf="questions.length > 0">
-  <form [formGroup]="form" class="quiz-form">
-    <div formArrayName="answers">
-      <div class="question-card" *ngFor="let question of questions; let i = index" [formGroupName]="i">
-        <div class="question-header">
-          <div>
-            <h2>Вопрос {{ i + 1 }}</h2>
-            <p>{{ question.text }}</p>
-          </div>
-          <span class="points">{{ question.points || 1 }} балл</span>
-        </div>
-
-        <mat-radio-group formControlName="selectedAnswerId" class="answer-options">
-          <mat-radio-button
-            *ngFor="let answer of question.options"
-            [value]="answer.id"
-            class="answer-chip"
-          >
-            <span>{{ answer.text }}</span>
-          </mat-radio-button>
-        </mat-radio-group>
-      </div>
+<mat-card class="quiz-card" *ngIf="loadError; else quizContent">
+  <div class="error-message">
+    <mat-icon>error_outline</mat-icon>
+    <div>
+      <h3>Ошибка при загрузке теста</h3>
+      <p>{{ loadError }}</p>
+      <button mat-stroked-button routerLink="/quizzes">Вернуться к списку</button>
     </div>
-
-    <div class="quiz-actions">
-      <button mat-flat-button color="primary" [disabled]="submitted || isExpired" (click)="submit()">
-        {{ submitted ? 'Результаты вычисляются...' : 'Отправить ответы' }}
-      </button>
-      <button mat-stroked-button color="basic" routerLink="/quizzes">Вернуться к списку</button>
-    </div>
-  </form>
+  </div>
 </mat-card>
+
+<ng-template #quizContent>
+  <mat-card class="quiz-card" *ngIf="questionsLoading; else loadedQuestions">
+    <div class="no-questions">
+      <mat-icon>hourglass_empty</mat-icon>
+      <h3>Загружаем вопросы</h3>
+      <p>Подождите немного, тест готовится к прохождению.</p>
+    </div>
+  </mat-card>
+
+  <ng-template #loadedQuestions>
+  <mat-card class="quiz-card" *ngIf="questions.length > 0; else noQuestions">
+    <form [formGroup]="form" class="quiz-form">
+      <div formArrayName="answers">
+        <div class="question-card" *ngFor="let question of questions; let i = index" [formGroupName]="i">
+          <div class="question-header">
+            <div>
+              <h2>Вопрос {{ i + 1 }}</h2>
+              <p>{{ question.text }}</p>
+            </div>
+            <span class="points">{{ question.points || 1 }} балл</span>
+          </div>
+
+          <mat-radio-group formControlName="selectedAnswerId" class="answer-options">
+            <mat-radio-button
+              *ngFor="let answer of question.options"
+              [value]="answer.id"
+              class="answer-chip"
+            >
+              <span>{{ answer.text }}</span>
+            </mat-radio-button>
+          </mat-radio-group>
+        </div>
+      </div>
+
+      <div class="quiz-actions">
+        <button mat-flat-button color="primary" [disabled]="submitted || isExpired" (click)="submit()">
+          {{ submitted ? 'Результаты вычисляются...' : 'Отправить ответы' }}
+        </button>
+        <button mat-stroked-button color="basic" routerLink="/quizzes">Вернуться к списку</button>
+      </div>
+    </form>
+  </mat-card>
+  </ng-template>
+
+  <ng-template #noQuestions>
+    <mat-card class="quiz-card">
+      <div class="no-questions">
+        <mat-icon>assignment_turned_in</mat-icon>
+        <h3>Вопросы не найдены</h3>
+        <p>Это тест не содержит вопросов. Свяжитесь с преподавателем.</p>
+        <button mat-stroked-button routerLink="/quizzes">Вернуться к списку</button>
+      </div>
+    </mat-card>
+  </ng-template>
+</ng-template>
 
 <mat-card *ngIf="submitted" class="result-banner">
   <div class="result-body">

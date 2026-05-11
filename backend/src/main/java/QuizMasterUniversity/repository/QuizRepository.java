@@ -14,4 +14,6 @@ public interface QuizRepository extends JpaRepository<Quiz, Long> {
     Page<Quiz> findByCreatorEmail(String creatorEmail, Pageable pageable);
 
     Optional<Quiz> findByIdAndCreatorEmail(Long id, String creatorEmail);
+
+    Page<Quiz> findDistinctByQuizAssignmentsGroupId(Long groupId, Pageable pageable);
 }

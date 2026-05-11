@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDividerModule } from '@angular/material/divider';
@@ -18,6 +18,7 @@ import { AuthService, CurrentUser } from '../../services/auth.service';
     CommonModule,
     RouterOutlet,
     RouterLink,
+    RouterLinkActive,
     MatSidenavModule,
     MatToolbarModule,
     MatIconModule,
@@ -33,11 +34,12 @@ import { AuthService, CurrentUser } from '../../services/auth.service';
 export class LayoutComponent implements OnInit {
   user: CurrentUser | null = null;
 
-  constructor(private router: Router, private authService: AuthService) {}
+  constructor(private router: Router, private authService: AuthService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     this.authService.user$.subscribe((user) => {
       this.user = user;
+      this.cdr.detectChanges();
     });
 
     if (this.authService.hasToken()) {
@@ -62,6 +64,7 @@ export class LayoutComponent implements OnInit {
   logout(): void {
     this.authService.logout();
     this.user = null;
+    this.cdr.detectChanges();
     this.router.navigate(['/auth/login']);
   }
 }

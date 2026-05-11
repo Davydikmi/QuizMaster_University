@@ -38,9 +38,13 @@ public class CourseService {
         return convertToResponse(savedCourse);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','TEACHER')")
     public Page<CourseResponse> getCourses(Pageable pageable) {
-        return courseRepository.findAll(pageable).map(this::convertToResponse);
+        if (isCurrentUserAdmin()) {
+            return courseRepository.findAll(pageable).map(this::convertToResponse);
+        }
+        String email = getCurrentUserEmail();
+        return courseRepository.findByTeacherEmail(email, pageable).map(this::convertToResponse);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -74,6 +78,15 @@ public class CourseService {
             throw new IllegalStateException("User is not authenticated");
         }
         return authentication.getName();
+    }
+
+    private boolean isCurrentUserAdmin() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            return false;
+        }
+        return authentication.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"));
     }
 
     private User getAuthenticatedUser() {

@@ -5,11 +5,15 @@ import QuizMasterUniversity.dto.QuizAssignmentResponse;
 import QuizMasterUniversity.dto.QuizRequest;
 import QuizMasterUniversity.dto.QuizResponse;
 import QuizMasterUniversity.entity.Course;
+import QuizMasterUniversity.entity.AttemptStatus;
 import QuizMasterUniversity.entity.Quiz;
 import QuizMasterUniversity.entity.QuizAssignment;
 import QuizMasterUniversity.entity.StudyGroup;
 import QuizMasterUniversity.entity.User;
+import QuizMasterUniversity.repository.AttemptAnswerRepository;
 import QuizMasterUniversity.repository.CourseRepository;
+import QuizMasterUniversity.repository.QuestionRepository;
+import QuizMasterUniversity.repository.QuizAttemptRepository;
 import QuizMasterUniversity.repository.QuizAssignmentRepository;
 import QuizMasterUniversity.repository.QuizRepository;
 import QuizMasterUniversity.repository.StudyGroupRepository;
@@ -29,13 +33,23 @@ import java.time.LocalDateTime;
 public class QuizService {
 
     private final QuizRepository quizRepository;
+    private final QuizAttemptRepository quizAttemptRepository;
+    private final AttemptAnswerRepository attemptAnswerRepository;
+    private final QuestionRepository questionRepository;
     private final UserRepository userRepository;
     private final CourseRepository courseRepository;
     private final StudyGroupRepository studyGroupRepository;
     private final QuizAssignmentRepository quizAssignmentRepository;
 
     public Page<QuizResponse> getQuizzes(Pageable pageable) {
-        if (isCurrentUserAdmin() || isCurrentUserStudent()) {
+        if (isCurrentUserStudent()) {
+            User student = getCurrentStudent();
+            if (student.getGroup() == null) {
+                return Page.empty(pageable);
+            }
+            return quizRepository.findDistinctByQuizAssignmentsGroupId(student.getGroup().getId(), pageable).map(this::convertToResponse);
+        }
+        if (isCurrentUserAdmin()) {
             return quizRepository.findAll(pageable).map(this::convertToResponse);
         }
         String email = getCurrentUserEmail();
@@ -43,7 +57,16 @@ public class QuizService {
     }
 
     public QuizResponse getQuizById(Long id) {
-        if (isCurrentUserAdmin() || isCurrentUserStudent()) {
+        if (isCurrentUserStudent()) {
+            User student = getCurrentStudent();
+            if (student.getGroup() == null || quizAssignmentRepository.findByQuizIdAndGroupId(id, student.getGroup().getId()).isEmpty()) {
+                throw new IllegalArgumentException("Quiz not found or access denied");
+            }
+            return quizRepository.findById(id)
+                    .map(this::convertToResponse)
+                    .orElseThrow(() -> new IllegalArgumentException("Quiz not found"));
+        }
+        if (isCurrentUserAdmin()) {
             return quizRepository.findById(id)
                     .map(this::convertToResponse)
                     .orElseThrow(() -> new IllegalArgumentException("Quiz not found"));
@@ -97,8 +120,18 @@ public class QuizService {
         return convertToResponse(quizRepository.save(quiz));
     }
 
+    @Transactional
     public void deleteQuiz(Long id) {
         Quiz quiz = findQuizForCurrentUser(id);
+        var attempts = quizAttemptRepository.findByQuizId(quiz.getId());
+        if (!attempts.isEmpty()) {
+            var attemptIds = attempts.stream().map(attempt -> attempt.getId()).toList();
+            attemptAnswerRepository.deleteSelectedOptionsByAttemptIds(attemptIds);
+            attemptAnswerRepository.deleteByAttemptIds(attemptIds);
+            quizAttemptRepository.deleteAll(attempts);
+        }
+        quizAssignmentRepository.deleteByQuizId(quiz.getId());
+        questionRepository.deleteByQuizId(quiz.getId());
         quizRepository.delete(quiz);
     }
 
@@ -161,6 +194,11 @@ public class QuizService {
     }
 
     private QuizResponse convertToResponse(Quiz quiz) {
+        QuizAssignment assignment = getRelevantAssignment(quiz);
+        User student = isCurrentUserStudent() ? getCurrentStudent() : null;
+        long completedAttempts = student == null ? 0 : quizAttemptRepository.findByQuizIdAndStudentId(quiz.getId(), student.getId()).stream()
+                .filter(attempt -> attempt.getStatus() == AttemptStatus.COMPLETED || attempt.getStatus() == AttemptStatus.TIMEOUT)
+                .count();
         return QuizResponse.builder()
                 .id(quiz.getId())
                 .title(quiz.getTitle())
@@ -169,11 +207,41 @@ public class QuizService {
                 .courseName(quiz.getCourse().getName())
                 .creatorId(quiz.getCreator().getId())
                 .creatorEmail(quiz.getCreator().getEmail())
+                .creatorName(quiz.getCreator().getLastName() + " " + quiz.getCreator().getFirstName())
+                .hasInProgressAttempt(student != null && hasInProgressAttempt(quiz, student))
+                .hasCompletedAttempt(student != null && completedAttempts > 0)
+                .questionCount((int) questionRepository.countByQuizId(quiz.getId()))
                 .timeLimitMinutes(quiz.getTimeLimitMinutes())
                 .maxAttempts(quiz.getMaxAttempts())
+                .attemptsRemaining(student == null ? quiz.getMaxAttempts() : Math.max(quiz.getMaxAttempts() - (int) completedAttempts, 0))
+                .availableFrom(assignment != null ? assignment.getAvailableFrom() : null)
+                .dueDate(assignment != null ? assignment.getDueDate() : null)
                 .createdAt(quiz.getCreatedAt())
                 .updatedAt(quiz.getUpdatedAt())
                 .build();
+    }
+
+    private boolean hasInProgressAttempt(Quiz quiz, User student) {
+        return quizAttemptRepository.existsByQuizIdAndStudentIdAndStatus(quiz.getId(), student.getId(), AttemptStatus.IN_PROGRESS);
+    }
+
+    private User getCurrentStudent() {
+        String email = getCurrentUserEmail();
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalStateException("Authenticated user not found"));
+    }
+
+    private QuizAssignment getRelevantAssignment(Quiz quiz) {
+        if (isCurrentUserStudent()) {
+            User student = getCurrentStudent();
+            if (student.getGroup() == null) {
+                return null;
+            }
+            return quizAssignmentRepository.findByQuizIdAndGroupId(quiz.getId(), student.getGroup().getId()).orElse(null);
+        }
+        return quizAssignmentRepository.findByQuizId(quiz.getId()).stream()
+                .findFirst()
+                .orElse(null);
     }
 
     private QuizAssignmentResponse convertToAssignmentResponse(QuizAssignment assignment) {

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -29,7 +29,12 @@ export class ProfileComponent implements OnInit {
   groupLabel = '—';
   form;
 
-  constructor(private fb: FormBuilder, private authService: AuthService, private snackBar: MatSnackBar) {
+  constructor(
+    private fb: FormBuilder,
+    private authService: AuthService,
+    private snackBar: MatSnackBar,
+    private cdr: ChangeDetectorRef
+  ) {
     this.form = this.fb.group({
       firstName: ['', [Validators.required]],
       lastName: ['', [Validators.required]],
@@ -48,6 +53,7 @@ export class ProfileComponent implements OnInit {
           lastName: user.lastName,
           email: user.email
         });
+        this.cdr.detectChanges();
       }
     });
   }
@@ -70,10 +76,12 @@ export class ProfileComponent implements OnInit {
           this.loading = false;
           this.snackBar.open('Профиль обновлен.', 'ОК', { duration: 2500 });
           this.form.patchValue({ password: '' });
+          this.cdr.detectChanges();
         },
         error: () => {
           this.loading = false;
           this.snackBar.open('Не удалось обновить профиль.', 'ОК', { duration: 3000 });
+          this.cdr.detectChanges();
         }
       });
   }

@@ -31,8 +31,23 @@
   grid-column: 1 / -1;
 }
 
+.group-select-actions {
+  margin-top: -0.75rem;
+}
+
 .form-actions {
   display: flex;
   gap: 1rem;
   flex-wrap: wrap;
+}
+
+@media (max-width: 720px) {
+  .teacher-card {
+    padding: 1rem;
+    border-radius: 18px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
 }

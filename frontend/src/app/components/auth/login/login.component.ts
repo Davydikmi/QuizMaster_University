@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -33,7 +33,8 @@ export class LoginComponent {
     private fb: FormBuilder,
     private authService: AuthService,
     private snackBar: MatSnackBar,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {
     this.form = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
@@ -52,17 +53,20 @@ export class LoginComponent {
         this.authService.loadCurrentUser().subscribe({
           next: (user) => {
             this.loading = false;
+            this.cdr.detectChanges();
             const target = user.role === 'STUDENT' ? '/quizzes' : '/teacher/courses';
             this.router.navigate([target]);
           },
           error: () => {
             this.loading = false;
+            this.cdr.detectChanges();
             this.router.navigate(['/quizzes']);
           }
         });
       },
       error: () => {
         this.loading = false;
+        this.cdr.detectChanges();
         this.snackBar.open('Не удалось войти. Проверьте email и пароль.', 'ОК', { duration: 3000 });
       }
     });

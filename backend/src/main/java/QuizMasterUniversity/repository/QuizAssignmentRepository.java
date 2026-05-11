@@ -13,4 +13,10 @@ public interface QuizAssignmentRepository extends JpaRepository<QuizAssignment, 
     List<QuizAssignment> findByGroupId(Long groupId);
 
     Optional<QuizAssignment> findByQuizIdAndGroupId(Long quizId, Long groupId);
+
+    List<QuizAssignment> findByQuizId(Long quizId);
+
+    void deleteByQuizId(Long quizId);
+
+    void deleteByGroupId(Long groupId);
 }

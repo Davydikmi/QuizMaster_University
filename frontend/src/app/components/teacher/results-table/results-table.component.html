@@ -10,37 +10,56 @@
   <table mat-table [dataSource]="results" class="mat-elevation-z1 teacher-table">
 
     <ng-container matColumnDef="student">
-      <th mat-header-cell *matHeaderCellDef>Студент</th>
+      <th mat-header-cell *matHeaderCellDef>
+        <button mat-button type="button" class="table-sort-button" (click)="sortBy('student')">Студент {{ sortLabel('student') }}</button>
+      </th>
       <td mat-cell *matCellDef="let row">{{ row.student }}</td>
     </ng-container>
 
     <ng-container matColumnDef="quizTitle">
-      <th mat-header-cell *matHeaderCellDef>Тест</th>
+      <th mat-header-cell *matHeaderCellDef>
+        <button mat-button type="button" class="table-sort-button" (click)="sortBy('quizTitle')">Тест {{ sortLabel('quizTitle') }}</button>
+      </th>
       <td mat-cell *matCellDef="let row">{{ row.quizTitle }}</td>
     </ng-container>
 
     <ng-container matColumnDef="course">
-      <th mat-header-cell *matHeaderCellDef>Курс</th>
+      <th mat-header-cell *matHeaderCellDef>
+        <button mat-button type="button" class="table-sort-button" (click)="sortBy('course')">Курс {{ sortLabel('course') }}</button>
+      </th>
       <td mat-cell *matCellDef="let row">{{ row.course }}</td>
     </ng-container>
 
     <ng-container matColumnDef="score">
-      <th mat-header-cell *matHeaderCellDef>Баллы</th>
+      <th mat-header-cell *matHeaderCellDef>
+        <button mat-button type="button" class="table-sort-button" (click)="sortBy('score')">Баллы {{ sortLabel('score') }}</button>
+      </th>
       <td mat-cell *matCellDef="let row">{{ row.score }}/{{ row.maxScore }}</td>
     </ng-container>
 
     <ng-container matColumnDef="status">
-      <th mat-header-cell *matHeaderCellDef>Статус</th>
+      <th mat-header-cell *matHeaderCellDef>
+        <button mat-button type="button" class="table-sort-button" (click)="sortBy('status')">Статус {{ sortLabel('status') }}</button>
+      </th>
       <td mat-cell *matCellDef="let row">
-        <mat-chip [color]="row.passed ? 'primary' : 'warn'" selected>
+        <mat-chip class="status-chip" [class.passed]="row.passed" [class.failed]="!row.passed" selected>
           {{ row.passed ? 'Сдано' : 'Не сдано' }}
         </mat-chip>
       </td>
     </ng-container>
 
     <ng-container matColumnDef="submittedAt">
-      <th mat-header-cell *matHeaderCellDef>Дата</th>
+      <th mat-header-cell *matHeaderCellDef>
+        <button mat-button type="button" class="table-sort-button" (click)="sortBy('submittedAt')">Дата {{ sortLabel('submittedAt') }}</button>
+      </th>
       <td mat-cell *matCellDef="let row">{{ row.submittedAt | date:'short' }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef>Действия</th>
+      <td mat-cell *matCellDef="let row">
+        <button mat-stroked-button color="warn" (click)="deleteAttempt(row)">Удалить</button>
+      </td>
     </ng-container>
 
     <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>

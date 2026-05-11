@@ -3,10 +3,16 @@ package QuizMasterUniversity.service;
 import QuizMasterUniversity.dto.StudyGroupDto;
 import QuizMasterUniversity.dto.StudyGroupRequest;
 import QuizMasterUniversity.entity.StudyGroup;
+import QuizMasterUniversity.entity.User;
+import QuizMasterUniversity.repository.AttemptAnswerRepository;
+import QuizMasterUniversity.repository.QuizAssignmentRepository;
+import QuizMasterUniversity.repository.QuizAttemptRepository;
 import QuizMasterUniversity.repository.StudyGroupRepository;
+import QuizMasterUniversity.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -15,8 +21,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class StudyGroupService {
     private final StudyGroupRepository studyGroupRepository;
+    private final UserRepository userRepository;
+    private final QuizAttemptRepository quizAttemptRepository;
+    private final AttemptAnswerRepository attemptAnswerRepository;
+    private final QuizAssignmentRepository quizAssignmentRepository;
 
-    @PreAuthorize("hasAnyRole('ADMIN','TEACHER','STUDENT')")
     public List<StudyGroupDto> getAll() {
         return studyGroupRepository.findAll().stream()
                 .map(this::toDto)
@@ -45,8 +54,23 @@ public class StudyGroupService {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
+    @Transactional
     public void delete(Long id) {
-        studyGroupRepository.deleteById(id);
+        StudyGroup group = studyGroupRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Study group not found"));
+        List<User> students = userRepository.findByGroupId(group.getId());
+        var attempts = students.stream()
+                .flatMap(student -> quizAttemptRepository.findByStudentId(student.getId()).stream())
+                .toList();
+        if (!attempts.isEmpty()) {
+            var attemptIds = attempts.stream().map(attempt -> attempt.getId()).toList();
+            attemptAnswerRepository.deleteSelectedOptionsByAttemptIds(attemptIds);
+            attemptAnswerRepository.deleteByAttemptIds(attemptIds);
+            quizAttemptRepository.deleteAll(attempts);
+        }
+        userRepository.deleteAll(students);
+        quizAssignmentRepository.deleteByGroupId(group.getId());
+        studyGroupRepository.delete(group);
     }
 
     private StudyGroupDto toDto(StudyGroup group) {
