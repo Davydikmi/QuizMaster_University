@@ -5,6 +5,7 @@ import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular
 import { firstValueFrom } from 'rxjs';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatIconModule } from '@angular/material/icon';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
@@ -21,6 +22,7 @@ import { Quiz, QuizService, Question } from '../../../services/quiz.service';
     RouterLink,
     MatCardModule,
     MatButtonModule,
+    MatCheckboxModule,
     MatIconModule,
     MatRadioModule,
     MatProgressBarModule,
@@ -141,7 +143,8 @@ export class QuizTakeComponent implements OnInit {
     const groups = questions.map((question) =>
       this.fb.group({
         questionId: [question.id],
-        selectedAnswerId: [null]
+        selectedAnswerId: [null],
+        selectedOptionIds: [[] as number[]]
       })
     );
 
@@ -156,8 +159,20 @@ export class QuizTakeComponent implements OnInit {
   }
 
   get progress(): number {
-    const answered = this.answerControls.controls.filter((control) => control.value.selectedAnswerId).length;
+    const answered = this.answerControls.controls.filter((control) => {
+      const selectedOptionIds = (control.value.selectedOptionIds as number[]) ?? [];
+      return Boolean(control.value.selectedAnswerId) || selectedOptionIds.length > 0;
+    }).length;
     return this.total ? Math.round((answered / this.total) * 100) : 0;
+  }
+
+  toggleOption(questionIndex: number, optionId: number, checked: boolean): void {
+    const control = this.answerControls.at(questionIndex);
+    const current = ((control.value.selectedOptionIds as number[]) ?? []).filter((id) => id !== optionId);
+    control.patchValue({
+      selectedOptionIds: checked ? [...current, optionId] : current
+    });
+    this.cdr.detectChanges();
   }
 
   async submit(): Promise<void> {
@@ -167,15 +182,18 @@ export class QuizTakeComponent implements OnInit {
     this.saving = true;
 
     const answerRequests = this.answerControls.controls
-      .map((control) => ({
-        questionId: Number(control.value.questionId),
-        selectedOptionId: Number(control.value.selectedAnswerId)
-      }))
-      .filter((item) => !!item.selectedOptionId);
+      .map((control) => {
+        const selectedOptionIds = (control.value.selectedOptionIds as number[]) ?? [];
+        return {
+          questionId: Number(control.value.questionId),
+          selectedOptionIds: selectedOptionIds.length ? selectedOptionIds : [Number(control.value.selectedAnswerId)].filter(Boolean)
+        };
+      })
+      .filter((item) => item.selectedOptionIds.length > 0);
 
     try {
       for (const answer of answerRequests) {
-        await firstValueFrom(this.quizService.saveAnswer(this.attemptId, answer.questionId, [answer.selectedOptionId]));
+        await firstValueFrom(this.quizService.saveAnswer(this.attemptId, answer.questionId, answer.selectedOptionIds));
       }
       const result = await firstValueFrom(this.quizService.finishAttempt(this.attemptId));
       this.submitted = true;

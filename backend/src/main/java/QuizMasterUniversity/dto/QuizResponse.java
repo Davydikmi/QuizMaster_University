@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -26,6 +27,7 @@ public class QuizResponse {
     private Integer timeLimitMinutes;
     private Integer maxAttempts;
     private Integer attemptsRemaining;
+    private List<String> assignedGroupNames;
     private LocalDateTime availableFrom;
     private LocalDateTime dueDate;
     private LocalDateTime createdAt;

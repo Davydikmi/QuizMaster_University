@@ -3,12 +3,9 @@
     <span class="eyebrow" *ngIf="!isContinuing">Прохождение теста</span>
     <span class="eyebrow" *ngIf="isContinuing" style="color: #ff9800;">Продолжение теста</span>
     <h1>{{ quizTitle }}</h1>
-    <p *ngIf="quizDescription">{{ quizDescription }}</p>
     <div class="quiz-metadata">
-      <p *ngIf="teacherName">Преподаватель: {{ teacherName }}</p>
       <p *ngIf="courseName">Курс: {{ courseName }}</p>
       <p>Вопросов: {{ questionCount }}</p>
-      <p>Длительность: {{ durationSeconds / 60 }} мин</p>
       <p *ngIf="availableFrom">Доступен с: {{ availableFrom }}</p>
       <p *ngIf="dueDate">Доступен до: {{ dueDate }}</p>
     </div>
@@ -52,15 +49,27 @@
             <span class="points">{{ question.points || 1 }} балл</span>
           </div>
 
-          <mat-radio-group formControlName="selectedAnswerId" class="answer-options">
-            <mat-radio-button
+          <div class="answer-options" *ngIf="question.type === 'MULTIPLE_CHOICE'; else singleChoice">
+            <mat-checkbox
               *ngFor="let answer of question.options"
-              [value]="answer.id"
               class="answer-chip"
+              (change)="toggleOption(i, answer.id, $event.checked)"
             >
               <span>{{ answer.text }}</span>
-            </mat-radio-button>
-          </mat-radio-group>
+            </mat-checkbox>
+          </div>
+
+          <ng-template #singleChoice>
+            <mat-radio-group formControlName="selectedAnswerId" class="answer-options">
+              <mat-radio-button
+                *ngFor="let answer of question.options"
+                [value]="answer.id"
+                class="answer-chip"
+              >
+                <span>{{ answer.text }}</span>
+              </mat-radio-button>
+            </mat-radio-group>
+          </ng-template>
         </div>
       </div>
 

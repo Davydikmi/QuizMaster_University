@@ -74,7 +74,8 @@ public class QuestionService {
         question.setOrderNum(request.getOrderNum());
 
         List<QuestionOption> optionEntities = buildOptions(request.getOptions(), question);
-        question.setQuestionOptions(new ArrayList<>(optionEntities));
+        question.getQuestionOptions().clear();
+        question.getQuestionOptions().addAll(optionEntities);
 
         Question saved = questionRepository.save(question);
         return convertToResponse(saved);

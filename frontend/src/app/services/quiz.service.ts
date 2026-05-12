@@ -20,6 +20,7 @@ export interface Quiz {
   attemptsRemaining?: number;
   timeLimitMinutes: number;
   maxAttempts: number;
+  assignedGroupNames?: string[];
   createdAt: string;
   updatedAt: string;
   questions?: Question[];

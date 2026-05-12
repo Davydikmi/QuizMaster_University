@@ -3,8 +3,9 @@
     <span class="eyebrow">Кабинет преподавателя</span>
     <h1>Добавить вопросы</h1>
     <p>Выберите тест и добавьте новые вопросы для оценки.</p>
+    <button mat-flat-button color="primary" (click)="openQuestionDialog()" [disabled]="!selectedQuiz">Добавить вопрос</button>
   </div>
-  <button mat-flat-button color="primary" (click)="openQuestionDialog()" [disabled]="!selectedQuiz">Добавить вопрос</button>
+  
 </section>
 
 <mat-card class="teacher-card">

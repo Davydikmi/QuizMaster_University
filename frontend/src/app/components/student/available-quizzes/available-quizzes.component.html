@@ -12,7 +12,7 @@
 <div class="quiz-grid">
   <mat-card *ngFor="let quiz of quizzes" class="quiz-card">
     <mat-card-header class="quiz-card-header">
-      <div mat-card-avatar class="quiz-avatar">Q</div>
+      <div mat-card-avatar class="quiz-avatar">Т</div>
       <div>
         <mat-card-title class="quiz-title">{{ quiz.title }}</mat-card-title>
         <mat-card-subtitle class="quiz-course">{{ quiz.courseName || 'Курс не указан' }}</mat-card-subtitle>
@@ -28,6 +28,10 @@
         <div><span>Окончание</span><strong>{{ quiz.dueDate ? (quiz.dueDate | date:'dd.MM.yyyy HH:mm') : 'не назначено' }}</strong></div>
         <div><span>Кол-во попыток</span><strong>{{ quiz.maxAttempts }}</strong></div>
         <div><span>Время на выполнение</span><strong>{{ quiz.timeLimitMinutes }} мин</strong></div>
+        <div *ngIf="role !== 'STUDENT'">
+          <span>Группы</span>
+          <strong>{{ (quiz.assignedGroupNames?.length ? quiz.assignedGroupNames?.join(', ') : 'не назначен') }}</strong>
+        </div>
       </div>
     </mat-card-content>
 

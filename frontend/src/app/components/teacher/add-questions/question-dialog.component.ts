@@ -122,8 +122,15 @@ export class QuestionDialogComponent implements OnInit {
       this.answers.push(this.createAnswerControl());
     }
 
-    const existingCorrect = this.answers.controls.findIndex((control) => Boolean(control.value.isCorrect));
-    this.markCorrect(existingCorrect >= 0 ? existingCorrect : 0);
+    if (type === 'MULTIPLE_CHOICE') {
+      const hasCorrect = this.answers.controls.some((control) => Boolean(control.value.isCorrect));
+      if (!hasCorrect) {
+        this.answers.at(0).get('isCorrect')?.setValue(true);
+      }
+    } else {
+      const existingCorrect = this.answers.controls.findIndex((control) => Boolean(control.value.isCorrect));
+      this.markCorrect(existingCorrect >= 0 ? existingCorrect : 0);
+    }
   }
 
   get answers(): FormArray<FormGroup> {
@@ -170,7 +177,10 @@ export class QuestionDialogComponent implements OnInit {
     if (type === 'SINGLE_CHOICE') {
       this.markCorrect(this.selectedCorrectIndex.value ?? 0);
     } else {
-      this.answers.controls.forEach((control) => control.get('isCorrect')?.setValue(false));
+      const hasCorrect = this.answers.controls.some((control) => Boolean(control.value.isCorrect));
+      if (!hasCorrect) {
+        this.answers.at(0).get('isCorrect')?.setValue(true);
+      }
     }
   }
 
